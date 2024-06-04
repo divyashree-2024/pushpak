@@ -18,3 +18,7 @@ class UserAddress(models.Model):
     address_country = models.CharField(max_length=100)
     address_pincode = models.CharField(max_length=6)
 
+    class Meta:
+        unique_together = (("user", "address_name"))
+
+

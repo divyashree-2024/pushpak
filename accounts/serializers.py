@@ -31,15 +31,55 @@ class UserSerializer(serializers.Serializer):
 
     def create(self, validated_data):
         return User.objects.create(**validated_data)
+    
+    def update(self, instance, validated_data):
+        for key, value in validated_data.items():
+            setattr(instance, key, value)
+        instance.save()
+        return instance
 
 
-class UserProfileSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = UserProfile
-        fields = "__all__"
+class UserProfileSerializer(serializers.Serializer):
+    user = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
+    date_of_birth = serializers.DateField()
+    college = serializers.CharField()
+    mobile = serializers.CharField()
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        data.pop("user", None)
+        return data
+    
+    def create(self, validated_data):
+        return UserProfile.objects.create(**validated_data)
+    
+    def update(self, instance, validated_data):
+        for key, value in validated_data.items():
+            setattr(instance, key, value)
+        instance.save()
+        return instance
 
 
-class UserAddressSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = UserAddress
-        fields = "__all__"
+class UserAddressSerializer(serializers.Serializer):
+    user = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
+    address_name = serializers.CharField()
+    address_line_1 = serializers.CharField()
+    address_line_2 = serializers.CharField()
+    address_city = serializers.CharField()
+    address_state = serializers.CharField()
+    address_country = serializers.CharField()
+    address_pincode = serializers.CharField()
+    
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        data.pop("user", None)
+        return data
+    
+    def create(self, validated_data):
+        return UserAddress.objects.create(**validated_data)
+    
+    def update(self, instance, validated_data):
+        for key, value in validated_data.items():
+            setattr(instance, key, value)
+        instance.save()
+        return instance
