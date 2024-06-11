@@ -1,4 +1,5 @@
 from rest_framework.viewsets import ViewSet
+from rest_framework.generics import ListAPIView
 from rest_framework.response import Response
 from rest_framework.status import HTTP_200_OK, HTTP_400_BAD_REQUEST
 from .serializers import UserProfileSerializer, UserAddressSerializer, UserSerializer, UserLoginSerializer
@@ -48,6 +49,17 @@ class UserViewSet(ViewSet):
     authentication_classes = (TokenAuthentication,)
     permission_classes = (IsAuthenticated,)
 
+    def retreive(self, request):
+        user = request.user
+        user_serializer = self.serializer_class(instance=user)
+        profile_serializer = UserProfileSerializer(instance=user.userprofile)
+        address_serializer = UserAddressSerializer(instance=user.useraddress_set.all(), many=True)
+        response_data = {
+            "user": user_serializer.data,
+            "profile": profile_serializer.data,
+            "address": address_serializer.data
+        }
+        return Response(data=response_data, status=HTTP_200_OK)
 
     def logout(self, request):
         user = request.user
@@ -77,7 +89,7 @@ class UserViewSet(ViewSet):
         }
         return Response(data=response_data, status=HTTP_200_OK)
     
-class UserAddressViewSet(ViewSet):
+class UserAddressViewSet(ViewSet, ListAPIView):
     queryset = UserAddress.objects.all()
     serializer_class = UserAddressSerializer
     authentication_classes = (TokenAuthentication,)
@@ -92,3 +104,19 @@ class UserAddressViewSet(ViewSet):
             return Response(data=serializer.errors, status=HTTP_400_BAD_REQUEST)
         serializer.save()
         return Response(data=serializer.data, status=HTTP_200_OK)
+    
+    def list(self, request, *args, **kwargs):
+        user = request.user
+        self.queryset = self.queryset.filter(user=user)
+        return super().list(request, *args, **kwargs)
+    
+    def delete(self, request, address_id):
+        user = request.user
+        address = self.queryset.filter(pk=address_id)
+        if not address:
+            return Response(data={"error": "invalid address id"}, status=HTTP_400_BAD_REQUEST)
+        
+        address.delete()
+        return Response(data={}, status=HTTP_200_OK)
+
+

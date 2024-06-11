@@ -61,6 +61,7 @@ class UserProfileSerializer(serializers.Serializer):
 
 
 class UserAddressSerializer(serializers.Serializer):
+    id = serializers.IntegerField(read_only=True)
     user = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
     address_name = serializers.CharField()
     address_line_1 = serializers.CharField()
